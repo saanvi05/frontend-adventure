@@ -1,0 +1,9 @@
+
+#incorrect-modal .modal-content {
+    max-width: 400px; 
+    padding: 40px 25px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-pink);
+}

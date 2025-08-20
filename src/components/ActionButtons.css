@@ -1,0 +1,23 @@
+.action-buttons { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 0.5rem; 
+    margin-top: 1rem; 
+}
+
+.action-buttons #check-code-btn { 
+    grid-column: 1 / -1; 
+}
+
+.action-buttons #hint-btn { 
+    background-color: var(--accent-purple); 
+}
+
+.action-buttons #show-answer-btn { 
+    background-color: var(--accent-orange); 
+}
+
+.action-buttons #next-level-btn { 
+    background-color: var(--light-bg); 
+    grid-column: 1 / -1; 
+}

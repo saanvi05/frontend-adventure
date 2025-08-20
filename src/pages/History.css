@@ -1,0 +1,60 @@
+.history-page {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.conversation-card {
+    background-color: var(--main-bg);
+    border: 1px solid var(--light-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.conversation-card h2 {
+    color: var(--accent-green);
+    margin-top: 0;
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--light-bg);
+    padding-bottom: 0.5rem;
+}
+
+.conversation-meta {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 1rem;
+}
+
+/* We can reuse the chat styles from the HintModal! */
+.chat-history-display {
+    background-color: #1e1f29;
+    border-radius: 5px;
+    padding: 1rem;
+    border: 1px solid var(--light-bg);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.chat-bubble { 
+    padding: 10px 15px; 
+    border-radius: 15px; 
+    margin-bottom: 10px;
+    max-width: 85%; 
+    line-height: 1.4; 
+    word-wrap: break-word; 
+}
+
+.user-bubble { 
+    background-color: var(--accent-purple); 
+    color: var(--dark-bg); 
+    margin-left: auto; 
+    border-bottom-right-radius: 5px; 
+}
+
+.ai-bubble { 
+    background-color: var(--light-bg); 
+    margin-right: auto; 
+    border-bottom-left-radius: 5px; 
+}

@@ -1,0 +1,39 @@
+.challenge-container { 
+    flex-grow: 1; 
+    overflow-y: auto; 
+}
+
+#objectives { 
+    list-style-type: none; 
+    padding-left: 0; 
+}
+
+#objectives li { 
+    padding: 8px; 
+    margin-bottom: 5px; 
+    border-left: 4px solid var(--accent-pink); 
+    background-color: rgba(0,0,0,0.2); 
+    transition: all 0.3s ease; 
+    line-height: 1.5; 
+}
+
+#objectives li.completed { 
+    border-left-color: var(--accent-green); 
+    text-decoration: line-through; 
+    color: #aaa; 
+    background-color: rgba(80, 250, 123, 0.1); 
+    animation: pop-in 0.5s ease-out; 
+}
+
+.learnable-term { 
+    color: var(--accent-yellow); 
+    font-weight: bold; 
+    text-decoration: underline dotted; 
+    text-decoration-thickness: 2px; 
+    cursor: help; 
+    transition: color 0.2s; 
+}
+
+.learnable-term:hover { 
+    color: #fff; 
+}

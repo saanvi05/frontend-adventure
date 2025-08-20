@@ -1,0 +1,51 @@
+/* 
+  Note: .modal, .modal.show, .modal-content, and .close-btn styles are already
+  defined in HintModal.css and are general enough to apply here too.
+  This file contains only the specific styles for the Answer Modal.
+*/
+
+#answer-modal .modal-content h2 { 
+    color: var(--accent-orange);
+}
+
+#answer-modal p {
+    text-align: center;
+}
+
+#answer-modal-timer { 
+    text-align: center; 
+    font-size: 1.5rem; 
+    color: var(--accent-orange); 
+    margin-top: 1rem; 
+    font-weight: bold;
+}
+
+#answer-code-container { 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    gap: 1rem; 
+    margin-top: 1rem;
+}
+
+#answer-code-container h4 {
+    color: var(--accent-pink);
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+#answer-code-container pre {
+    background-color: #1e1f29;
+    padding: 1rem;
+    border-radius: 5px;
+    border-left: 3px solid var(--accent-pink);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: var(--font-code);
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    #answer-code-container {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
