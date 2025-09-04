@@ -1,133 +1,133 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import './HintModal.css';
-import { ChatHistoryContext } from '../context/ChatHistoryContext';
+// src/components/HintModal.jsx
 
-function HintModal({ show, onClose, challenge, playerState, userCode }) {
-    const [chatHistory, setChatHistory] = useState([]);
-    const [userInput, setUserInput] = useState('');
-    const [isAiTyping, setIsAiTyping] = useState(false);
-    const chatContainerRef = useRef(null);
-    const { addConversation } = useContext(ChatHistoryContext);
-    const [conversationTitle, setConversationTitle] = useState(`Conversation about "${challenge.title}"`);
+import React, { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown"; // We'll use this to format the AI's response
+import "./HintModal.css";
 
-    useEffect(() => {
-        if (show) {
-            const name = playerState.name ? `, ${playerState.name}` : '';
-            setChatHistory([
-                { sender: 'ai', text: `Hello${name}! I'm Pixel's AI Brain. Ask me anything about this quest, or even ask me to check your code!` }
-            ]);
-            setUserInput('');
-            setConversationTitle(`Conversation about "${challenge.title}"`);
+// This is a placeholder for your actual GameContext.
+// In a full app, you would import this from your context file.
+const useGame = () => ({
+  currentChallenge: { title: "Current Challenge Title" },
+});
+
+const HintModal = ({ isOpen, onClose }) => {
+  const { currentChallenge } = useGame();
+  const [chatHistory, setChatHistory] = useState([]);
+  const [userQuestion, setUserQuestion] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Reset chat when the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setChatHistory([
+        {
+          role: "model",
+          text: "Hello! I'm Pixel's AI Brain. Ask me anything about the current challenge!",
+        },
+      ]);
+    }
+  }, [isOpen]);
+
+  const handleAskAi = async (e) => {
+    e.preventDefault();
+    if (!userQuestion.trim()) return;
+
+    const currentQuestion = userQuestion;
+    const newHistory = [
+      ...chatHistory,
+      { role: "user", text: currentQuestion },
+    ];
+    setChatHistory(newHistory);
+    setUserQuestion(""); // Clear the input field
+    setIsLoading(true);
+
+    try {
+      // THIS IS THE CRITICAL LINE THAT CONNECTS TO YOUR LIVE SERVER
+      const response = await fetch(
+        "https://frontend-adventure.onrender.com/api/ask-ai",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            challengeTitle: currentChallenge.title,
+            history: newHistory.map((msg) => ({
+              role: msg.role,
+              parts: [{ text: msg.text }],
+            })),
+            question: currentQuestion,
+          }),
         }
-    }, [show, playerState.name, challenge.title]);
+      );
 
-    useEffect(() => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
-    }, [chatHistory]);
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+      }
 
-    const handleCloseAndSave = () => {
-        if (chatHistory.length > 1) {
-            const newConversation = {
-                id: Date.now(),
-                title: conversationTitle, 
-                timestamp: new Date().toISOString(),
-                messages: chatHistory,
-            };
-            addConversation(newConversation);
-        }
-        onClose(); 
-    };
-    
-    const handleAskAi = async () => {
-        const userQuestion = userInput.trim();
-        if (!userQuestion || isAiTyping) return;
-        const newUserMsg = { sender: 'user', text: userQuestion };
-        setChatHistory(prev => [...prev, newUserMsg]);
-        setUserInput('');
-        setIsAiTyping(true);
+      const data = await response.json();
+      setChatHistory((prev) => [
+        ...prev,
+        { role: "model", text: data.response },
+      ]);
+    } catch (error) {
+      console.error("Failed to fetch AI response:", error);
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          role: "model",
+          text: "Sorry, I'm having trouble connecting my brain right now. Please try again.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        // THE FIX IS HERE: This filter is now safer.
-        // It checks if 'msg' and 'msg.text' exist before calling '.includes()'.
-        const historyForApi = chatHistory
-            .filter(msg => msg && msg.text && !msg.text.includes("AI Brain"))
-            .map(msg => ({
-                role: msg.sender === 'ai' ? 'model' : 'user',
-                parts: [{ text: msg.text }]
-            }));
-        historyForApi.push({ role: 'user', parts: [{ text: userQuestion }] });
+  if (!isOpen) return null;
 
-        try {
-            const response = await fetch('https://saanvi-ai-backend.saanvi-bel17.workers.dev', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    challengeTitle: challenge.title,
-                    challengeDescription: challenge.description,
-                    userCode: userCode,
-                    history: historyForApi,
-                    question: userQuestion
-                })
-            });
-
-            if (!response.ok) throw new Error('Failed to get a response from the AI server.');
-            
-            const data = await response.json();
-            const aiResponseMsg = { sender: 'ai', text: data.answer };
-            setChatHistory(prev => [...prev, aiResponseMsg]);
-            setConversationTitle(data.title);
-
-        } catch (error) {
-            console.error('AI Request Error:', error);
-            const errorMsg = { sender: 'ai', text: "Oh no! My AI circuits are buzzing. I couldn't connect. Please make sure the server is running!" };
-            setChatHistory(prev => [...prev, errorMsg]);
-        } finally {
-            setIsAiTyping(false);
-        }
-    };
-
-    if (!show) return null;
-
-    return (
-        <div id="hint-modal" className={`modal ${show ? 'show' : ''}`} onClick={handleCloseAndSave}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <span className="close-btn" onClick={handleCloseAndSave}>&times;</span>
-                <h2>Hints & AI Tutor</h2>
-                <div id="direct-hints-container">
-                    {challenge.objectives.map((obj, index) => (
-                        <div key={obj.id}>
-                            <h4>Objective: {obj.text}</h4>
-                            <div>{obj.hint || 'Focus on the main goal. You can do it!'}</div>
-                            {index < challenge.objectives.length - 1 && <hr />}
-                        </div>
-                    ))}
-                </div>
-                <div className="ai-hint-section">
-                    <h3>Ask the AI Tutor</h3>
-                    <div id="chat-history-container" ref={chatContainerRef}>
-                        {chatHistory.map((msg, index) => (
-                            <div key={index} className={`chat-bubble ${msg.sender === 'user' ? 'user-bubble' : 'ai-bubble'}`}>
-                                {msg.text}
-                            </div>
-                        ))}
-                        {isAiTyping && <div className="chat-bubble ai-bubble">Pixel is thinking...</div>}
-                    </div>
-                    <textarea
-                        id="ai-question-input"
-                        placeholder="Ask a question or say 'check my code'..."
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleAskAi())}
-                        disabled={isAiTyping}
-                    />
-                    <button id="ask-ai-btn" className="game-btn" onClick={handleAskAi} disabled={isAiTyping}>
-                        {isAiTyping ? 'Thinking...' : 'Ask AI'}
-                    </button>
-                </div>
+  return (
+    <div className="modal">
+      <div className="modal-content">
+        <span className="close-btn" onClick={onClose}>
+          &times;
+        </span>
+        <h2>AI Tutor</h2>
+        <div id="chat-history-container">
+          {chatHistory.map((message, index) => (
+            <div
+              key={index}
+              className={`chat-bubble ${
+                message.role === "user" ? "user-bubble" : "ai-bubble"
+              }`}
+            >
+              <ReactMarkdown>{message.text}</ReactMarkdown>
             </div>
+          ))}
+          {isLoading && (
+            <div className="chat-bubble ai-bubble">Pixel is thinking...</div>
+          )}
         </div>
-    );
-}
+        <div className="ai-hint-section">
+          <form onSubmit={handleAskAi}>
+            <textarea
+              id="ai-question-input"
+              placeholder="Ask a question..."
+              value={userQuestion}
+              onChange={(e) => setUserQuestion(e.target.value)}
+              disabled={isLoading}
+            ></textarea>
+            <button
+              type="submit"
+              id="ask-ai-btn"
+              className="game-btn"
+              disabled={isLoading}
+            >
+              {isLoading ? "Thinking..." : "Ask AI"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default HintModal;
